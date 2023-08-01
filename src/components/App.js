@@ -6,6 +6,7 @@ import Error from "./Error";
 import StartScreen from "./StartScreen";
 import Question from "./Question";
 import NextButton from "./NextButton";
+import Progress from "./Progress";
 
 /**
  * @type {{
@@ -29,7 +30,7 @@ const initialState = {
   status: 'loading',
   index: 0,
   answer: null,
-  points: '0',
+  points: 0,
 };
 
 /**
@@ -71,7 +72,7 @@ function reducer(state, action) {
 
     case 'newAnswer':
       const currQuestion = state.questions[state.index];
-      const isCorrectQuestion = action.payload === currQuestion.currentOption;
+      const isCorrectQuestion = action.payload === currQuestion.correctOption;
       const newPoints = isCorrectQuestion
         ? state.points + currQuestion.points
         : state.points;
@@ -87,12 +88,16 @@ function reducer(state, action) {
 }
 
 export default function App() {
-  const [{ questions, status, index, answer }, dispatch] = useReducer(
+  const [{ questions, status, index, answer, points }, dispatch] = useReducer(
     reducer,
     initialState,
   );
 
   const numQuestions = questions.length;
+  const maxPossiblePoints = questions.reduce(
+    (acc, curr) => acc + curr.points,
+    0,
+  );
 
   useEffect(() => {
     async function loadQuestions() {
@@ -122,6 +127,14 @@ export default function App() {
         )}
         {status === 'active' && (
           <>
+            <Progress
+              index={index}
+              numQuestions={numQuestions}
+              points={points}
+              maxPossiblePoints={maxPossiblePoints}
+              answer={answer}
+            />
+
             <Question
               question={questions[index]}
               dispatch={dispatch}
