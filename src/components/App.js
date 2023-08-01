@@ -1,13 +1,15 @@
-import Header from "./Header";
-import Main from "./Main";
-import { useEffect, useReducer } from "react";
-import Loader from "./Loader";
-import Error from "./Error";
-import StartScreen from "./StartScreen";
-import Question from "./Question";
-import NextButton from "./NextButton";
-import Progress from "./Progress";
-import FinishScreen from "./FinishScreen";
+import Header from './Header';
+import Main from './Main';
+import { useEffect, useReducer } from 'react';
+import Loader from './Loader';
+import Error from './Error';
+import StartScreen from './StartScreen';
+import Question from './Question';
+import NextButton from './NextButton';
+import Progress from './Progress';
+import FinishScreen from './FinishScreen';
+import RestartGame from './RestartGame';
+import Footer from './Footer';
 
 /**
  * @type {{
@@ -91,6 +93,9 @@ function reducer(state, action) {
 
       return { ...state, status: 'finished', highscore: newHighScore };
 
+    case 'restart':
+      return { ...initialState, status: 'ready', questions: state.questions };
+
     default:
       throw new Error('Action is unknown');
   }
@@ -148,20 +153,28 @@ export default function App() {
               answer={answer}
             />
 
-            <NextButton
-              dispatch={dispatch}
-              answer={answer}
-              numQuestions={numQuestions}
-              index={index}
-            />
+            <Footer>
+              <Timer />
+
+              <NextButton
+                dispatch={dispatch}
+                answer={answer}
+                numQuestions={numQuestions}
+                index={index}
+              />
+            </Footer>
           </>
         )}
         {status === 'finished' && (
-          <FinishScreen
-            points={points}
-            maxPossiblePoints={maxPossiblePoints}
-            highscore={highscore}
-          />
+          <>
+            <FinishScreen
+              points={points}
+              maxPossiblePoints={maxPossiblePoints}
+              highscore={highscore}
+            />
+
+            <RestartGame dispatch={dispatch} />
+          </>
         )}
       </Main>
     </div>
