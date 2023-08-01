@@ -1,6 +1,7 @@
+import { useEffect, useReducer } from 'react';
+
 import Header from './Header';
 import Main from './Main';
-import { useEffect, useReducer } from 'react';
 import Loader from './Loader';
 import Error from './Error';
 import StartScreen from './StartScreen';
@@ -10,6 +11,7 @@ import Progress from './Progress';
 import FinishScreen from './FinishScreen';
 import RestartGame from './RestartGame';
 import Footer from './Footer';
+import Timer from './Timer';
 
 /**
  * @type {{
@@ -35,7 +37,10 @@ const initialState = {
   answer: null,
   points: 0,
   highscore: 0,
+  secondsRemaining: null,
 };
+
+const SEC_PER_QUESTION = 30;
 
 /**
  * Reducer function that updates the state based on the given action.
@@ -57,6 +62,7 @@ const initialState = {
  * @param state.index {number} - Current question index.
  * @param state.points {number} - User points.
  * @param state.highscore {number} - Users high-score.
+ * @param state.secondsRemaining {number} - Timer seconds.
  *
  * @return {Object} - The updated state object.
  * @param return.questions {Array} - An array of question objects.
@@ -73,7 +79,11 @@ function reducer(state, action) {
       return { ...state, status: 'error' };
 
     case 'start':
-      return { ...state, status: 'active' };
+      return {
+        ...state,
+        status: 'active',
+        secondsRemaining: state.questions.length * SEC_PER_QUESTION,
+      };
 
     case 'newAnswer':
       const currQuestion = state.questions[state.index];
@@ -96,14 +106,23 @@ function reducer(state, action) {
     case 'restart':
       return { ...initialState, status: 'ready', questions: state.questions };
 
+    case 'tick':
+      return {
+        ...state,
+        secondsRemaining: state.secondsRemaining - 1,
+        status: state.secondsRemaining === 0 ? 'finished' : state.status,
+      };
+
     default:
       throw new Error('Action is unknown');
   }
 }
 
 export default function App() {
-  const [{ questions, status, index, answer, points, highscore }, dispatch] =
-    useReducer(reducer, initialState);
+  const [
+    { questions, status, index, answer, points, highscore, secondsRemaining },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
   const numQuestions = questions.length;
   const maxPossiblePoints = questions.reduce(
@@ -154,7 +173,7 @@ export default function App() {
             />
 
             <Footer>
-              <Timer />
+              <Timer dispatch={dispatch} secondsRemaining={secondsRemaining} />
 
               <NextButton
                 dispatch={dispatch}
