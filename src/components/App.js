@@ -7,6 +7,7 @@ import StartScreen from "./StartScreen";
 import Question from "./Question";
 import NextButton from "./NextButton";
 import Progress from "./Progress";
+import FinishScreen from "./FinishScreen";
 
 /**
  * @type {{
@@ -31,6 +32,7 @@ const initialState = {
   index: 0,
   answer: null,
   points: 0,
+  highscore: 0,
 };
 
 /**
@@ -52,6 +54,7 @@ const initialState = {
  * @param state.status {"loading" | "error" | "active" | "finished" | "ready"} - The status of the state.
  * @param state.index {number} - Current question index.
  * @param state.points {number} - User points.
+ * @param state.highscore {number} - Users high-score.
  *
  * @return {Object} - The updated state object.
  * @param return.questions {Array} - An array of question objects.
@@ -82,16 +85,20 @@ function reducer(state, action) {
     case 'nextQuestion':
       return { ...state, index: state.index + 1, answer: null };
 
+    case 'finish':
+      const newHighScore =
+        state.points > state.highscore ? state.points : state.highscore;
+
+      return { ...state, status: 'finished', highscore: newHighScore };
+
     default:
       throw new Error('Action is unknown');
   }
 }
 
 export default function App() {
-  const [{ questions, status, index, answer, points }, dispatch] = useReducer(
-    reducer,
-    initialState,
-  );
+  const [{ questions, status, index, answer, points, highscore }, dispatch] =
+    useReducer(reducer, initialState);
 
   const numQuestions = questions.length;
   const maxPossiblePoints = questions.reduce(
@@ -141,8 +148,20 @@ export default function App() {
               answer={answer}
             />
 
-            <NextButton dispatch={dispatch} answer={answer} />
+            <NextButton
+              dispatch={dispatch}
+              answer={answer}
+              numQuestions={numQuestions}
+              index={index}
+            />
           </>
+        )}
+        {status === 'finished' && (
+          <FinishScreen
+            points={points}
+            maxPossiblePoints={maxPossiblePoints}
+            highscore={highscore}
+          />
         )}
       </Main>
     </div>
